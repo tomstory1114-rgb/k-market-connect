@@ -4,7 +4,7 @@ export interface User {
   displayName: string;
   country: string;
   address: string;
-  uniqueId: string; // NW-US-0001234
+  uniqueId: string;
   points: number;
   level: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
   totalSpent: number;
@@ -53,12 +53,12 @@ export interface Comment {
 export interface Shipment {
   id: string;
   userId: string;
-  uniqueId: string;
+  trackingNumber: string;
+  mall: string;
+  productName: string;
   status: 'pending' | 'warehouse' | 'shipping' | 'delivered';
-  items: string[];
-  trackingNumber?: string;
-  estimatedDelivery?: Date;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface PointTransaction {
@@ -82,14 +82,4 @@ export interface Mall {
   logo: string;
   url: string;
   commission: number;
-}
-export interface Shipment {
-  id: string;
-  userId: string;
-  trackingNumber: string;
-  mall: string;
-  productName: string;
-  status: 'pending' | 'warehouse' | 'shipping' | 'delivered';
-  createdAt: Date;
-  updatedAt: Date;
 }
