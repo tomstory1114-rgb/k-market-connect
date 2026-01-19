@@ -176,7 +176,12 @@ export default function ShopPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <ProductCard product={product} />
+                <ProductCard 
+                  product={{
+                    ...product,
+                    category: product.category || '기타'
+                  }} 
+                />
               </motion.div>
             ))}
           </div>
