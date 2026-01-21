@@ -1,17 +1,21 @@
 export interface UnifiedProduct {
   id: string;
+  name: string;
   title: string;
   price: number;
   originalPrice?: number;
   discount?: number;
   image: string;
   url: string;
+  affiliateLink: string;
   rating?: number;
   reviewCount?: number;
   category: string;
+  mall: string;
   mallName?: string;
   brand?: string;
   source: 'naver';
+  isPopular?: boolean;
 }
 
 interface NaverShoppingItem {
@@ -65,19 +69,24 @@ export function unifyNaverProducts(items: NaverShoppingItem[]): UnifiedProduct[]
     const lprice = parseInt(item.lprice) || 0;
     const hprice = parseInt(item.hprice) || 0;
     const discount = hprice > lprice ? Math.round(((hprice - lprice) / hprice) * 100) : 0;
+    const cleanTitle = item.title.replace(/<\/?b>/g, '');
 
     return {
       id: item.productId || `naver-${index}`,
-      title: item.title.replace(/<\/?b>/g, ''),
+      name: cleanTitle,
+      title: cleanTitle,
       price: lprice,
       originalPrice: hprice > lprice ? hprice : undefined,
       discount: discount > 0 ? discount : undefined,
       image: item.image,
       url: item.link,
+      affiliateLink: item.link,
       category: item.category1 || item.category2 || '기타',
+      mall: item.mallName || '네이버쇼핑',
       mallName: item.mallName,
       brand: item.brand || item.maker,
       source: 'naver',
+      isPopular: index < 5,
     };
   });
 }

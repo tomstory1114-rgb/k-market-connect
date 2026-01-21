@@ -1,22 +1,12 @@
 'use client';
 
+import { UnifiedProduct } from '@/utils/shopApi';
 import { formatPrice } from '@/utils/helpers';
 import { ExternalLink, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ProductCardProps {
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    originalPrice?: number;
-    discount?: number;
-    image: string;
-    affiliateLink: string;
-    category: string;
-    mall: string;
-    isPopular?: boolean;
-  };
+  product: UnifiedProduct;
 }
 
 function ProductCard({ product }: ProductCardProps) {
@@ -64,9 +54,9 @@ function ProductCard({ product }: ProductCardProps) {
 
         <div className="flex items-end justify-between">
           <div>
-            {product.discount && (
+            {product.discount && product.originalPrice && (
               <div className="text-sm text-gray-400 line-through">
-                {formatPrice(product.originalPrice || product.price)}
+                {formatPrice(product.originalPrice)}
               </div>
             )}
             <div className="text-xl font-bold text-gray-900">
