@@ -3,9 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Search, TrendingUp, Package, Users, Gift, ChevronRight, Star, Zap, ShoppingCart } from 'lucide-react';
-import { Product, Mall } from '@/types';
+import { UnifiedProduct } from '@/utils/shopApi';
 import ProductCard from '@/components/features/ProductCard';
 import { motion } from 'framer-motion';
+
+interface Mall {
+  id: string;
+  name: string;
+  logo: string;
+  url: string;
+  commission: number;
+}
 
 // 실제 쇼핑몰 로고 URL 사용
 const malls: Mall[] = [
@@ -53,50 +61,65 @@ const malls: Mall[] = [
   },
 ];
 
-// Mock data
-const popularProducts: Product[] = [
+// UnifiedProduct 타입으로 변경
+const popularProducts: UnifiedProduct[] = [
   {
     id: '1',
     name: '올리브영 베스트 스킨케어 세트',
+    title: '올리브영 베스트 스킨케어 세트',
     price: 89000,
+    originalPrice: 105000,
+    discount: 15,
     image: 'https://picsum.photos/seed/beauty1/400/400',
+    url: 'https://oliveyoung.co.kr',
+    affiliateLink: 'https://oliveyoung.co.kr',
     category: '뷰티',
     mall: '올리브영',
-    affiliateLink: 'https://oliveyoung.co.kr',
+    source: 'naver',
     isPopular: true,
-    discount: 15,
   },
   {
     id: '2',
     name: '무신사 겨울 패딩 재킷',
+    title: '무신사 겨울 패딩 재킷',
     price: 149000,
+    originalPrice: 186000,
+    discount: 20,
     image: 'https://picsum.photos/seed/fashion1/400/400',
+    url: 'https://musinsa.com',
+    affiliateLink: 'https://musinsa.com',
     category: '패션',
     mall: '무신사',
-    affiliateLink: 'https://musinsa.com',
+    source: 'naver',
     isPopular: true,
-    discount: 20,
   },
   {
     id: '3',
     name: '마켓컬리 프리미엄 한우세트',
+    title: '마켓컬리 프리미엄 한우세트',
     price: 79000,
     image: 'https://picsum.photos/seed/food1/400/400',
+    url: 'https://kurly.com',
+    affiliateLink: 'https://kurly.com',
     category: '식품',
     mall: '마켓컬리',
-    affiliateLink: 'https://kurly.com',
+    source: 'naver',
     isPopular: true,
   },
   {
     id: '4',
     name: '쿠팡 삼성 갤럭시 버즈',
+    title: '쿠팡 삼성 갤럭시 버즈',
     price: 129000,
+    originalPrice: 143000,
+    discount: 10,
     image: 'https://picsum.photos/seed/tech1/400/400',
+    url: 'https://coupang.com',
+    affiliateLink: 'https://coupang.com',
     category: '전자제품',
     mall: '쿠팡',
-    affiliateLink: 'https://coupang.com',
+    source: 'naver',
     isPopular: true,
-    discount: 10,
   },
 ];
 
