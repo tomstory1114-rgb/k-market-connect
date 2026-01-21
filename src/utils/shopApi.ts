@@ -1,46 +1,83 @@
-export async function searchNaverShopping(query: string, display: number = 20) {
+export interface UnifiedProduct {
+  id: string;
+  title: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  image: string;
+  url: string;
+  rating?: number;
+  reviewCount?: number;
+  category: string;
+  mallName?: string;
+  brand?: string;
+  source: 'naver';
+}
+
+interface NaverShoppingItem {
+  title: string;
+  link: string;
+  image: string;
+  lprice: string;
+  hprice: string;
+  mallName: string;
+  productId: string;
+  brand?: string;
+  maker?: string;
+  category1?: string;
+  category2?: string;
+}
+
+interface NaverShoppingResponse {
+  lastBuildDate: string;
+  total: number;
+  start: number;
+  display: number;
+  items: NaverShoppingItem[];
+}
+
+export async function searchNaverShopping(
+  query: string,
+  display: number = 20
+): Promise<NaverShoppingResponse> {
   try {
-    const response = await fetch(`/api/naver-shopping?query=${encodeURIComponent(query)}&display=${display}`);
+    const response = await fetch(
+      `/api/naver-shopping?query=${encodeURIComponent(query)}&display=${display}`,
+      {
+        method: 'GET',
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('네이버 쇼핑 검색 실패');
+    }
+
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('네이버 쇼핑 API 오류:', error);
-    return { items: [] };
+    throw error;
   }
 }
 
-export interface UnifiedProduct {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  mall: string;
-  link: string;
-  discount?: number;
-  category?: string;
-  affiliateLink?: string;
-  isPopular?: boolean;
-}
-
-export function unifyNaverProducts(naverItems: any[]): UnifiedProduct[] {
-  return naverItems.map((item, index) => {
-    const price = parseInt(item.lprice);
-    const originalPrice = parseInt(item.hprice);
-    const discount = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+export function unifyNaverProducts(items: NaverShoppingItem[]): UnifiedProduct[] {
+  return items.map((item, index) => {
+    const lprice = parseInt(item.lprice) || 0;
+    const hprice = parseInt(item.hprice) || 0;
+    const discount = hprice > lprice ? Math.round(((hprice - lprice) / hprice) * 100) : 0;
 
     return {
-      id: `naver-${index}`,
-      name: item.title.replace(/<[^>]*>/g, ''),
-      price,
-      originalPrice: originalPrice > price ? originalPrice : undefined,
-      image: item.image,
-      mall: item.mallName || '네이버쇼핑',
-      link: item.link,
-      affiliateLink: item.link,
+      id: item.productId || `naver-${index}`,
+      title: item.title.replace(/<\/?b>/g, ''),
+      price: lprice,
+      originalPrice: hprice > lprice ? hprice : undefined,
       discount: discount > 0 ? discount : undefined,
-      category: item.category1 || 'general',
-      isPopular: discount > 20,
+      image: item.image,
+      url: item.link,
+      category: item.category1 || item.category2 || '기타',
+      mallName: item.mallName,
+      brand: item.brand || item.maker,
+      source: 'naver',
     };
   });
 }
