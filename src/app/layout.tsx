@@ -1,55 +1,53 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import './globals.css';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import Navbar from '@/components/layout/Navbar';
 import { Toaster } from 'react-hot-toast';
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import AuthProvider from "@/components/providers/AuthProvider";
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "K-Market Connect | 해외 한인을 위한 구매대행 플랫폼",
-  description: "한국 제품을 전 세계로! 쇼핑, 커뮤니티, 배송까지 한번에",
-  keywords: "구매대행, 해외배송, 한인커뮤니티, K-마켓, 나우물류",
+  title: 'K-Market Connect | 해외 한인을 위한 구매대행 플랫폼',
+  description: '한국 쇼핑, 세계 어디서나. 구매대행부터 커뮤니티까지 한 곳에서 해결하세요.',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="ko">
-      <body className="bg-gray-50 min-h-screen flex flex-col">
-        <AuthProvider>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
-        </AuthProvider>
-        <Toaster 
-          position="top-center"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-            success: {
+      <body className={inter.className}>
+        <FavoritesProvider>
+          <Toaster 
+            position="top-center"
+            toastOptions={{
               duration: 3000,
-              iconTheme: {
-                primary: '#4ade80',
-                secondary: '#fff',
+              style: {
+                background: '#363636',
+                color: '#fff',
               },
-            },
-            error: {
-              duration: 4000,
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: '#fff',
+                },
               },
-            },
-          }}
-        />
+              error: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+          <Navbar />
+          <main>{children}</main>
+        </FavoritesProvider>
       </body>
     </html>
   );

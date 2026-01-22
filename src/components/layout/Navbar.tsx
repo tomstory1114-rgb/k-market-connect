@@ -1,139 +1,189 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { ShoppingBag, Users, User, Menu, X, Gift, Home, Shield } from 'lucide-react';
-import { useUserStore } from '@/store/userStore';
-import { getLevelBadge } from '@/utils/helpers';
-
-const ADMIN_EMAILS = ['admin@kmarket.com', 'www1114com@naver.com'];
+import { Menu, X, ShoppingBag, User, Home, Users, Gift, Bell, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useFavorites } from '@/contexts/FavoritesContext';
 
 export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useUserStore();
+  const { favoriteCount } = useFavorites();
 
-  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
-
-  const navItems = [
+  const navigation = [
     { name: '홈', href: '/', icon: Home },
     { name: '쇼핑', href: '/shop', icon: ShoppingBag },
     { name: '커뮤니티', href: '/community', icon: Users },
     { name: '이벤트', href: '/events', icon: Gift },
   ];
 
-  if (isAdmin) {
-    navItems.push({ name: '관리자', href: '/admin', icon: Shield });
-  }
+  const isActive = (path: string) => {
+    if (path === '/') return pathname === path;
+    return pathname.startsWith(path);
+  };
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl font-bold">K</span>
-            </div>
+          <Link href="/" className="flex items-center space-x-3 group">
+            <motion.div
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+              className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
+            >
+              <span className="text-white font-bold text-2xl">K</span>
+            </motion.div>
             <div className="hidden sm:block">
-              <span className="text-xl font-bold text-gray-900 font-display">K-Market</span>
-              <span className="text-sm text-primary-600 ml-1">Connect</span>
+              <div className="text-2xl font-bold">
+                <span className="text-gray-900">K-Market</span>
+                <span className="text-primary-600 ml-1">Connect</span>
+              </div>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => {
+            {navigation.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const active = isActive(item.href);
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'bg-primary-50 text-primary-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  } ${item.href === '/admin' ? 'bg-red-50 text-red-600 hover:bg-red-100' : ''}`}
+                  className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+                    active
+                      ? 'text-primary-600 bg-primary-50'
+                      : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                  }`}
                 >
                   <Icon className="w-5 h-5" />
-                  <span>{item.name}</span>
+                  {item.name}
+                  {active && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
+                  )}
                 </Link>
               );
             })}
           </div>
 
-          {/* User Section */}
-          <div className="flex items-center space-x-4">
-            {user ? (
-              <Link
-                href="/mypage"
-                className="flex items-center space-x-3 bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg transition-all duration-200"
-              >
-                <div className="flex items-center space-x-2">
-                  <User className="w-5 h-5 text-gray-600" />
-                  <div className="hidden sm:block text-left">
-                    <div className="text-sm font-medium text-gray-900">
-                      {user.displayName}
-                      {isAdmin && <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">관리자</span>}
-                    </div>
-                    <div className="text-xs text-gray-500 flex items-center">
-                      {getLevelBadge(user.level)} {user.points.toLocaleString()}P
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ) : (
-              <Link
-                href="/auth/login"
-                className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg"
-              >
-                로그인
-              </Link>
-            )}
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          {/* Right Side Icons */}
+          <div className="hidden md:flex items-center space-x-2">
+            {/* 찜하기 */}
+            <Link
+              href="/favorites"
+              className="relative p-2 rounded-lg text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
             >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-600" />
-              ) : (
-                <Menu className="w-6 h-6 text-gray-600" />
+              <Heart className="w-6 h-6" />
+              {favoriteCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-lg"
+                >
+                  {favoriteCount > 99 ? '99+' : favoriteCount}
+                </motion.span>
               )}
-            </button>
-          </div>
-        </div>
+            </Link>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
-            <div className="flex flex-col space-y-2">
-              {navItems.map((item) => {
+            {/* 알림 */}
+            <button className="relative p-2 rounded-lg text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200">
+              <Bell className="w-6 h-6" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            {/* 사용자 메뉴 */}
+            <Link
+              href="/mypage"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              <User className="w-5 h-5" />
+              <span>관리자</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded text-xs">3,000P</span>
+            </Link>
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden border-t border-gray-200 bg-white"
+          >
+            <div className="px-4 py-4 space-y-2">
+              {navigation.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const active = isActive(item.href);
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? 'bg-primary-50 text-primary-700 font-medium'
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                      active
+                        ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-600 hover:bg-gray-50'
-                    } ${item.href === '/admin' ? 'bg-red-50 text-red-600' : ''}`}
+                    }`}
                   >
                     <Icon className="w-5 h-5" />
-                    <span>{item.name}</span>
+                    {item.name}
                   </Link>
                 );
               })}
+
+              {/* 모바일 찜하기 */}
+              <Link
+                href="/favorites"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-between px-4 py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-50 transition-all duration-200"
+              >
+                <div className="flex items-center gap-3">
+                  <Heart className="w-5 h-5" />
+                  찜한 상품
+                </div>
+                {favoriteCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                    {favoriteCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* 모바일 프로필 */}
+              <Link
+                href="/mypage"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-between px-4 py-3 rounded-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              >
+                <div className="flex items-center gap-3">
+                  <User className="w-5 h-5" />
+                  관리자
+                </div>
+                <span className="bg-white/20 px-2 py-1 rounded text-xs">3,000P</span>
+              </Link>
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </nav>
   );
 }
