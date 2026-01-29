@@ -8,6 +8,7 @@ import SearchAutocomplete from '@/components/features/SearchAutocomplete';
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchNaverShopping, unifyNaverProducts, UnifiedProduct } from '@/utils/shopApi';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
 
 const categories = [
   { id: 'all', name: '전체', icon: '🛍️', query: '인기상품' },
@@ -28,12 +29,15 @@ const priceRanges = [
   { id: 'over100', label: '10만원 이상', min: 100000, max: Infinity },
 ];
 
-// 쇼핑몰 소스 탭
-const sourceTabs = [
-  { id: 'all', name: '전체', icon: '🛍️' },
-  { id: 'naver', name: '네이버쇼핑', icon: '🟢' },
-  { id: 'coupang', name: '쿠팡', icon: '🔵' },
-];
+// 다양한 인기 키워드 (카테고리별)
+const popularKeywords = {
+  food: ['신라면', '비비고', '정관장', '고추장', '김', '참기름', '된장', '떡볶이'],
+  beauty: ['설화수', '후', '라네즈', '이니스프리', '에뛰드', 'VT', '메디힐', '토니모리'],
+  electronics: ['에어팟', '갤럭시', 'LG', '삼성', '다이슨', '샤오미', 'JBL', '로지텍'],
+  fashion: ['노스페이스', 'MLB', '나이키', '아디다스', '유니클로', '자라', '캘빈클라인'],
+  living: ['락앤락', '쿠쿠', '코웨이', '청호나이스', '한일전기', '일리', '브레빌'],
+  baby: ['페도라', '아기띠', '기저귀', '분유', '젖병', '유모차', '카시트'],
+};
 
 export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -74,33 +78,53 @@ export default function ShopPage() {
     }
   };
 
-  // 초기 로드 - 여러 인기 키워드로 상품 가져오기
+  // 초기 로드 - 다양한 카테고리의 인기 상품
   useEffect(() => {
     const loadInitialProducts = async () => {
       setLoading(true);
       try {
-        // 인기 키워드로 검색 (더 많은 결과를 위해)
-        const keywords = ['신라면', '설화수', '에어팟', '다이슨', '정관장'];
         const allProducts: UnifiedProduct[] = [];
+        
+        // 각 카테고리에서 2-3개씩 키워드 선택
+        const selectedKeywords = [
+          ...popularKeywords.food.slice(0, 2),      // 신라면, 비비고
+          ...popularKeywords.beauty.slice(0, 3),    // 설화수, 후, 라네즈
+          ...popularKeywords.electronics.slice(0, 2), // 에어팟, 갤럭시
+          ...popularKeywords.fashion.slice(0, 2),   // 노스페이스, MLB
+          ...popularKeywords.living.slice(0, 2),    // 락앤락, 쿠쿠
+          ...popularKeywords.baby.slice(0, 1),      // 페도라
+        ];
 
-        for (const keyword of keywords) {
-          try {
-            const data = await searchNaverShopping(keyword, 20);
-            if (data.items && data.items.length > 0) {
-              const unified = unifyNaverProducts(data.items);
-              allProducts.push(...unified);
-            }
-          } catch (err) {
-            console.error(`${keyword} 검색 실패:`, err);
-          }
-        }
+        // 각 키워드로 검색 (병렬 처리)
+        const searchPromises = selectedKeywords.map(keyword => 
+          searchNaverShopping(keyword, 10)
+            .then(data => {
+              if (data.items && data.items.length > 0) {
+                return unifyNaverProducts(data.items);
+              }
+              return [];
+            })
+            .catch(err => {
+              console.error(`${keyword} 검색 실패:`, err);
+              return [];
+            })
+        );
+
+        const results = await Promise.all(searchPromises);
+        results.forEach(productList => {
+          allProducts.push(...productList);
+        });
 
         if (allProducts.length > 0) {
           // 중복 제거 (id 기준)
           const uniqueProducts = Array.from(
             new Map(allProducts.map(p => [p.id, p])).values()
           );
-          setProducts(uniqueProducts);
+          
+          // 랜덤 셔플로 다양성 증가
+          const shuffled = uniqueProducts.sort(() => Math.random() - 0.5);
+          
+          setProducts(shuffled);
           setInitialLoaded(true);
         } else {
           // 실패 시 기본 검색
@@ -139,7 +163,6 @@ export default function ShopPage() {
         if (selectedSource === 'naver') {
           return p.source === 'naver' || !p.source;
         } else if (selectedSource === 'coupang') {
-          // 쿠팡 상품 필터 (현재는 네이버만 있지만 향후 대비)
           return p.mall?.toLowerCase().includes('쿠팡') || 
                  p.mall?.toLowerCase().includes('coupang');
         }
@@ -216,24 +239,54 @@ export default function ShopPage() {
           />
         </div>
 
-        {/* 소스 탭 (네이버/쿠팡) */}
+        {/* 소스 탭 (로고 버전) */}
         <div className="mb-6 overflow-x-auto pb-2">
           <div className="flex gap-3 min-w-max">
-            {sourceTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedSource(tab.id)}
-                disabled={loading}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 whitespace-nowrap disabled:opacity-50 ${
-                  selectedSource === tab.id
-                    ? 'bg-blue-600 text-white shadow-lg scale-105'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
-                }`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.name}
-              </button>
-            ))}
+            {/* 전체 */}
+            <button
+              onClick={() => setSelectedSource('all')}
+              disabled={loading}
+              className={`px-8 py-4 rounded-xl font-bold transition-all duration-200 whitespace-nowrap disabled:opacity-50 flex items-center gap-3 ${
+                selectedSource === 'all'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl scale-105'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
+              }`}
+            >
+              <ShoppingBag className="w-6 h-6" />
+              <span className="text-lg">전체</span>
+            </button>
+
+            {/* 네이버쇼핑 */}
+            <button
+              onClick={() => setSelectedSource('naver')}
+              disabled={loading}
+              className={`px-8 py-4 rounded-xl font-bold transition-all duration-200 whitespace-nowrap disabled:opacity-50 flex items-center gap-3 ${
+                selectedSource === 'naver'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-xl scale-105'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md border-2 border-green-200'
+              }`}
+            >
+              <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-black text-xl">N</span>
+              </div>
+              <span className="text-lg">네이버쇼핑</span>
+            </button>
+
+            {/* 쿠팡 */}
+            <button
+              onClick={() => setSelectedSource('coupang')}
+              disabled={loading}
+              className={`px-8 py-4 rounded-xl font-bold transition-all duration-200 whitespace-nowrap disabled:opacity-50 flex items-center gap-3 ${
+                selectedSource === 'coupang'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-xl scale-105'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md border-2 border-blue-200'
+              }`}
+            >
+              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-black text-xl">C</span>
+              </div>
+              <span className="text-lg">쿠팡</span>
+            </button>
           </div>
         </div>
 
@@ -293,7 +346,7 @@ export default function ShopPage() {
         {/* 상품 목록 */}
         {loading && products.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(12)].map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
@@ -387,3 +440,6 @@ export default function ShopPage() {
     </div>
   );
 }
+```
+
+---
