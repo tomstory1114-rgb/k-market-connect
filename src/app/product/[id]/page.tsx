@@ -34,22 +34,16 @@ export default function ProductDetailPage() {
   
   const [product, setProduct] = useState<UnifiedProduct | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    // 실제로는 API에서 가져오거나, localStorage에서 찾거나
-    // 여기서는 최근 본 상품이나 찜한 상품에서 찾기
     const productId = params.id as string;
-    
-    // 최근 본 상품에서 찾기
     const found = recentProducts.find(p => p.id === productId);
     
     if (found) {
       setProduct(found);
-      addRecentProduct(found); // 최근 본 상품에 추가
+      addRecentProduct(found);
     } else {
-      // 찾지 못하면 쇼핑 페이지로 리다이렉트
       toast.error('상품을 찾을 수 없습니다');
       router.push('/shop');
     }
@@ -113,7 +107,6 @@ export default function ProductDetailPage() {
     window.open(product.affiliateLink, '_blank');
   };
 
-  // 비슷한 상품 (최근 본 상품 중에서)
   const similarProducts = recentProducts
     .filter(p => p.id !== product.id && p.category === product.category)
     .slice(0, 4);
@@ -225,38 +218,78 @@ export default function ProductDetailPage() {
               </span>
             </div>
 
-            {/* 액션 버튼 */}
-            <div className="flex gap-3">
-              <button
-                onClick={handleFavoriteToggle}
-                className={`flex-shrink-0 w-14 h-14 flex items-center justify-center rounded-xl border-2 transition-all duration-200 ${
-                  favorite
-                    ? 'border-red-500 bg-red-50 text-red-500'
-                    : 'border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-500'
-                }`}
-              >
-                <Heart className="w-6 h-6" fill={favorite ? 'currentColor' : 'none'} />
-              </button>
-              <button
-                onClick={handleShare}
-                className="flex-shrink-0 w-14 h-14 flex items-center justify-center rounded-xl border-2 border-gray-300 hover:border-primary-500 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200"
-              >
-                <Share2 className="w-6 h-6" />
-              </button>
-              <button
-                onClick={handleAddToCart}
-                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                장바구니 담기
-              </button>
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                <ExternalLink className="w-5 h-5" />
-                바로 구매
-              </button>
+            {/* 액션 버튼 - 하이브리드 */}
+            <div className="space-y-3">
+              {/* 상단: 찜하기 + 공유 */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleFavoriteToggle}
+                  className={`flex-1 h-14 flex items-center justify-center rounded-xl border-2 transition-all duration-200 ${
+                    favorite
+                      ? 'border-red-500 bg-red-50 text-red-500'
+                      : 'border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-500'
+                  }`}
+                >
+                  <Heart className="w-6 h-6 mr-2" fill={favorite ? 'currentColor' : 'none'} />
+                  찜하기
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="flex-1 h-14 flex items-center justify-center rounded-xl border-2 border-gray-300 hover:border-primary-500 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200"
+                >
+                  <Share2 className="w-6 h-6 mr-2" />
+                  공유
+                </button>
+              </div>
+
+              {/* 하단: 구매 옵션 */}
+              <div className="space-y-2">
+                {/* 옵션 1: 나우물류 구매대행 (추천) */}
+                <div className="relative">
+                  <div className="absolute -top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-xs font-bold px-3 py-1 rounded-full text-gray-900 shadow-lg z-10">
+                    ⭐ 추천
+                  </div>
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex flex-col items-center justify-center"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <ShoppingCart className="w-5 h-5" />
+                      <span>나우물류 구매대행</span>
+                    </div>
+                    <span className="text-xs text-white/80">
+                      안전한 배송 보장 · 수수료 15%
+                    </span>
+                  </button>
+                </div>
+
+                {/* 옵션 2: 직접 구매 */}
+                <button
+                  onClick={handleBuyNow}
+                  className="w-full bg-white hover:bg-gray-50 text-gray-700 font-medium py-4 rounded-xl transition-all duration-200 border-2 border-gray-300 hover:border-primary-500 flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                  네이버쇼핑에서 직접 구매
+                </button>
+              </div>
+            </div>
+
+            {/* 구매 옵션 설명 */}
+            <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900">
+                  <p className="font-medium mb-2">💡 구매 옵션 안내</p>
+                  <ul className="space-y-1 text-blue-800">
+                    <li>
+                      <strong>나우물류 구매대행:</strong> 저희가 대신 구매하고 해외로 안전하게 배송해드립니다
+                    </li>
+                    <li>
+                      <strong>직접 구매:</strong> 네이버쇼핑에서 바로 구매하실 수 있습니다
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
             {/* 배송 정보 */}

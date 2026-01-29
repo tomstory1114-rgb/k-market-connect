@@ -7,6 +7,7 @@ import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import { OrderProvider } from '@/contexts/OrderContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -27,32 +28,34 @@ export default function RootLayout({
           <UserProvider>
             <FavoritesProvider>
               <CartProvider>
-                <Toaster 
-                  position="top-center"
-                  toastOptions={{
-                    duration: 3000,
-                    style: {
-                      background: '#363636',
-                      color: '#fff',
-                    },
-                    success: {
+                <OrderProvider>
+                  <Toaster 
+                    position="top-center"
+                    toastOptions={{
                       duration: 3000,
-                      iconTheme: {
-                        primary: '#10b981',
-                        secondary: '#fff',
+                      style: {
+                        background: '#363636',
+                        color: '#fff',
                       },
-                    },
-                    error: {
-                      duration: 3000,
-                      iconTheme: {
-                        primary: '#ef4444',
-                        secondary: '#fff',
+                      success: {
+                        duration: 3000,
+                        iconTheme: {
+                          primary: '#10b981',
+                          secondary: '#fff',
+                        },
                       },
-                    },
-                  }}
-                />
-                <Navbar />
-                <main>{children}</main>
+                      error: {
+                        duration: 3000,
+                        iconTheme: {
+                          primary: '#ef4444',
+                          secondary: '#fff',
+                        },
+                      },
+                    }}
+                  />
+                  <Navbar />
+                  <main>{children}</main>
+                </OrderProvider>
               </CartProvider>
             </FavoritesProvider>
           </UserProvider>

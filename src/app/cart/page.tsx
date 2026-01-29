@@ -35,11 +35,8 @@ export default function CartPage() {
     }
   };
 
-  const handleCheckout = () => {
-    toast.success('주문 페이지로 이동합니다 (개발 중)');
-  };
-
-  const finalTotal = cartTotal + selectedCountry.shippingFee;
+  const serviceFee = Math.round(cartTotal * 0.15); // 구매대행 수수료 15%
+  const finalTotal = cartTotal + selectedCountry.shippingFee + serviceFee;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -235,6 +232,10 @@ export default function CartPage() {
                     <span>배송비 ({selectedCountry.name})</span>
                     <span className="font-medium">{formatPrice(selectedCountry.shippingFee)}</span>
                   </div>
+                  <div className="flex justify-between text-blue-600">
+                    <span>구매대행 수수료 (15%)</span>
+                    <span className="font-medium">{formatPrice(serviceFee)}</span>
+                  </div>
                   <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-200">
                     <span>총 결제 금액</span>
                     <span className="text-primary-600">{formatPrice(finalTotal)}</span>
@@ -255,17 +256,20 @@ export default function CartPage() {
                 </div>
 
                 {/* 주문하기 버튼 */}
-                <button
-                  onClick={handleCheckout}
+                <Link
+                  href="/checkout"
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                 >
                   <CreditCard className="w-5 h-5" />
-                  {formatPrice(finalTotal)} 주문하기
-                </button>
+                  나우물류 구매대행으로 주문
+                </Link>
 
                 {/* 안내 사항 */}
                 <div className="text-xs text-gray-500 space-y-1 pt-4 border-t border-gray-200">
-                  <p>• 배송비는 국가별로 상이합니다</p>
+                  <p className="font-medium text-gray-700">💡 구매대행 서비스</p>
+                  <p>• 나우물류가 한국에서 대신 구매합니다</p>
+                  <p>• 구매대행 수수료: 상품 금액의 15%</p>
+                  <p>• 안전하고 확실한 배송 보장</p>
                   <p>• 관세 및 통관 비용은 별도입니다</p>
                   <p>• 결제 후 1-3일 내 발송됩니다</p>
                 </div>
