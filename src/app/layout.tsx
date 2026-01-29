@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import Navbar from '@/components/layout/Navbar';
 import { Toaster } from 'react-hot-toast';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
+import { CartProvider } from '@/contexts/CartContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,32 +22,34 @@ export default function RootLayout({
     <html lang="ko">
       <body className={inter.className}>
         <FavoritesProvider>
-          <Toaster 
-            position="top-center"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
+          <CartProvider>
+            <Toaster 
+              position="top-center"
+              toastOptions={{
                 duration: 3000,
-                iconTheme: {
-                  primary: '#10b981',
-                  secondary: '#fff',
+                style: {
+                  background: '#363636',
+                  color: '#fff',
                 },
-              },
-              error: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
+                success: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: '#10b981',
+                    secondary: '#fff',
+                  },
                 },
-              },
-            }}
-          />
-          <Navbar />
-          <main>{children}</main>
+                error: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
+            <Navbar />
+            <main>{children}</main>
+          </CartProvider>
         </FavoritesProvider>
       </body>
     </html>

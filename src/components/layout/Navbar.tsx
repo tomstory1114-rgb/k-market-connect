@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ShoppingBag, User, Home, Users, Gift, Bell, Heart } from 'lucide-react';
+import { Menu, X, ShoppingBag, User, Home, Users, Gift, Bell, Heart, Clock, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { useCart } from '@/contexts/CartContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { favoriteCount } = useFavorites();
+  const { cartCount } = useCart();
 
   const navigation = [
     { name: '홈', href: '/', icon: Home },
@@ -93,6 +95,31 @@ export default function Navbar() {
               )}
             </Link>
 
+            {/* 최근 본 상품 */}
+            <Link
+              href="/recent"
+              className="relative p-2 rounded-lg text-gray-600 hover:text-purple-500 hover:bg-purple-50 transition-all duration-200"
+            >
+              <Clock className="w-6 h-6" />
+            </Link>
+
+            {/* 장바구니 */}
+            <Link
+              href="/cart"
+              className="relative p-2 rounded-lg text-gray-600 hover:text-green-500 hover:bg-green-50 transition-all duration-200"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {cartCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 bg-green-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-lg"
+                >
+                  {cartCount > 99 ? '99+' : cartCount}
+                </motion.span>
+              )}
+            </Link>
+
             {/* 알림 */}
             <button className="relative p-2 rounded-lg text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200">
               <Bell className="w-6 h-6" />
@@ -164,6 +191,33 @@ export default function Navbar() {
                 {favoriteCount > 0 && (
                   <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                     {favoriteCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* 모바일 최근 본 상품 */}
+              <Link
+                href="/recent"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Clock className="w-5 h-5" />
+                최근 본 상품
+              </Link>
+
+              {/* 모바일 장바구니 */}
+              <Link
+                href="/cart"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-between px-4 py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-50 transition-all duration-200"
+              >
+                <div className="flex items-center gap-3">
+                  <ShoppingCart className="w-5 h-5" />
+                  장바구니
+                </div>
+                {cartCount > 0 && (
+                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                    {cartCount}
                   </span>
                 )}
               </Link>
