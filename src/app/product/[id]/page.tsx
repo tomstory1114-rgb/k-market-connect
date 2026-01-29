@@ -14,7 +14,9 @@ import {
   Shield,
   ExternalLink,
   Info,
-  TrendingUp
+  TrendingUp,
+  Plus,
+  Minus
 } from 'lucide-react';
 import { UnifiedProduct } from '@/utils/shopApi';
 import { formatPrice } from '@/utils/helpers';
@@ -114,7 +116,7 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* 뒤로가기 버튼 */}
+        {/* 뒤로가기 */}
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
@@ -123,13 +125,12 @@ export default function ProductDetailPage() {
           <span className="font-medium">돌아가기</span>
         </button>
 
-        {/* 상품 정보 메인 섹션 */}
+        {/* 메인 섹션 */}
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          {/* 이미지 섹션 */}
+          {/* 이미지 */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-4"
           >
             <div className="relative aspect-square bg-white rounded-2xl overflow-hidden shadow-xl">
               <img
@@ -151,13 +152,13 @@ export default function ProductDetailPage() {
             </div>
           </motion.div>
 
-          {/* 상품 정보 섹션 */}
+          {/* 상품 정보 */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6"
           >
-            {/* 카테고리 & 브랜드 */}
+            {/* 카테고리 */}
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-lg text-sm font-medium">
                 {product.category}
@@ -198,14 +199,14 @@ export default function ProductDetailPage() {
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
-                  -
+                  <Minus className="w-5 h-5" />
                 </button>
                 <span className="px-6 py-2 font-bold text-lg">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
-                  +
+                  <Plus className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -218,9 +219,9 @@ export default function ProductDetailPage() {
               </span>
             </div>
 
-            {/* 액션 버튼 - 하이브리드 */}
+            {/* 🔥 액션 버튼 - 하이브리드 🔥 */}
             <div className="space-y-3">
-              {/* 상단: 찜하기 + 공유 */}
+              {/* 찜하기 + 공유 */}
               <div className="flex gap-3">
                 <button
                   onClick={handleFavoriteToggle}
@@ -242,9 +243,9 @@ export default function ProductDetailPage() {
                 </button>
               </div>
 
-              {/* 하단: 구매 옵션 */}
+              {/* 구매 옵션 */}
               <div className="space-y-2">
-                {/* 옵션 1: 나우물류 구매대행 (추천) */}
+                {/* 옵션 1: 나우물류 구매대행 */}
                 <div className="relative">
                   <div className="absolute -top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-xs font-bold px-3 py-1 rounded-full text-gray-900 shadow-lg z-10">
                     ⭐ 추천
@@ -275,7 +276,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* 구매 옵션 설명 */}
-            <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+            <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
@@ -319,36 +320,9 @@ export default function ProductDetailPage() {
           </motion.div>
         </div>
 
-        {/* 상품 상세 정보 */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <Info className="w-6 h-6 text-primary-600" />
-            상품 정보
-          </h2>
-          <div className="space-y-4 text-gray-700 leading-relaxed">
-            <p className="text-lg">{product.name}</p>
-            <div className="grid md:grid-cols-2 gap-4 pt-4">
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                <span className="font-medium text-gray-600">카테고리:</span>
-                <span className="font-bold">{product.category}</span>
-              </div>
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                <span className="font-medium text-gray-600">판매처:</span>
-                <span className="font-bold">{product.mall}</span>
-              </div>
-              {product.brand && (
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <span className="font-medium text-gray-600">브랜드:</span>
-                  <span className="font-bold">{product.brand}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 비슷한 상품 추천 */}
+        {/* 비슷한 상품 */}
         {similarProducts.length > 0 && (
-          <div className="mb-12">
+          <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <TrendingUp className="w-6 h-6 text-primary-600" />
