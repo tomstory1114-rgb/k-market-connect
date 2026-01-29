@@ -122,20 +122,3 @@ export function useOrder() {
   }
   return context;
 }
-```
-
-### 6. 저장: **Ctrl + S**
-
----
-
-## 🔍 파일 위치 확인
-
-올바른 위치:
-```
-k-market-connect/
-└── contexts/
-    ├── CartContext.tsx
-    ├── FavoritesContext.tsx
-    ├── NotificationContext.tsx
-    ├── UserContext.tsx
-    └── OrderContext.tsx        ← 이 파일이 있어야 함!
