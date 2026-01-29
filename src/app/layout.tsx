@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { UserProvider } from '@/contexts/UserContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,38 +23,40 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={inter.className}>
-        <UserProvider>
-          <FavoritesProvider>
-            <CartProvider>
-              <Toaster 
-                position="top-center"
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: '#363636',
-                    color: '#fff',
-                  },
-                  success: {
+        <NotificationProvider>
+          <UserProvider>
+            <FavoritesProvider>
+              <CartProvider>
+                <Toaster 
+                  position="top-center"
+                  toastOptions={{
                     duration: 3000,
-                    iconTheme: {
-                      primary: '#10b981',
-                      secondary: '#fff',
+                    style: {
+                      background: '#363636',
+                      color: '#fff',
                     },
-                  },
-                  error: {
-                    duration: 3000,
-                    iconTheme: {
-                      primary: '#ef4444',
-                      secondary: '#fff',
+                    success: {
+                      duration: 3000,
+                      iconTheme: {
+                        primary: '#10b981',
+                        secondary: '#fff',
+                      },
                     },
-                  },
-                }}
-              />
-              <Navbar />
-              <main>{children}</main>
-            </CartProvider>
-          </FavoritesProvider>
-        </UserProvider>
+                    error: {
+                      duration: 3000,
+                      iconTheme: {
+                        primary: '#ef4444',
+                        secondary: '#fff',
+                      },
+                    },
+                  }}
+                />
+                <Navbar />
+                <main>{children}</main>
+              </CartProvider>
+            </FavoritesProvider>
+          </UserProvider>
+        </NotificationProvider>
       </body>
     </html>
   );

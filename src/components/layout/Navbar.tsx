@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ShoppingBag, User, Home, Users, Gift, Bell, Heart, Clock, ShoppingCart } from 'lucide-react';
+import { Menu, X, ShoppingBag, User, Home, Users, Gift, Heart, Clock, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useCart } from '@/contexts/CartContext';
+import NotificationDropdown from '@/components/features/NotificationDropdown';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -121,10 +122,7 @@ export default function Navbar() {
             </Link>
 
             {/* 알림 */}
-            <button className="relative p-2 rounded-lg text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200">
-              <Bell className="w-6 h-6" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            <NotificationDropdown />
 
             {/* 사용자 메뉴 */}
             <Link
