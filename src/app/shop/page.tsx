@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Search, Filter, Star, TrendingUp, Zap, DollarSign } from 'lucide-react';
 import ProductCard from '@/components/features/ProductCard';
 import SkeletonCard from '@/components/ui/SkeletonCard';
+import SearchAutocomplete from '@/components/features/SearchAutocomplete';
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchNaverShopping, unifyNaverProducts, UnifiedProduct } from '@/utils/shopApi';
 import toast from 'react-hot-toast';
@@ -37,22 +38,11 @@ export default function ShopPage() {
   const [selectedPriceRange, setSelectedPriceRange] = useState('all');
   const [displayCount, setDisplayCount] = useState(20);
 
-  // 검색어 하이라이트 함수
-  const highlightSearchTerm = (text: string, searchTerm: string) => {
-    if (!searchTerm.trim()) return text;
-    const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
-    return parts.map((part, i) => 
-      part.toLowerCase() === searchTerm.toLowerCase() 
-        ? `<mark class="bg-yellow-200 text-gray-900 px-1 rounded">${part}</mark>` 
-        : part
-    ).join('');
-  };
-
   const loadProducts = async (query: string) => {
     setLoading(true);
-    setDisplayCount(20); // 리셋
+    setDisplayCount(20);
     try {
-      const data = await searchNaverShopping(query, 100); // 더 많은 상품 가져오기
+      const data = await searchNaverShopping(query, 100);
       
       if (data.items && data.items.length > 0) {
         const unified = unifyNaverProducts(data.items);
@@ -83,25 +73,14 @@ export default function ShopPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      setSelectedPriceRange('all');
-      loadProducts(searchTerm);
-    }
-  };
-
-  // 필터링 & 정렬된 상품
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...products];
     
-    // 가격 필터링
     const priceRange = priceRanges.find(r => r.id === selectedPriceRange);
     if (priceRange && priceRange.id !== 'all') {
       filtered = filtered.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
     }
     
-    // 정렬
     if (sortBy === 'price-low') {
       filtered.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
@@ -113,12 +92,10 @@ export default function ShopPage() {
     return filtered;
   }, [products, sortBy, selectedPriceRange]);
 
-  // 무한 스크롤을 위한 표시 상품
   useEffect(() => {
     setDisplayedProducts(filteredAndSortedProducts.slice(0, displayCount));
   }, [filteredAndSortedProducts, displayCount]);
 
-  // 무한 스크롤 핸들러
   const handleScroll = useCallback(() => {
     if (loading) return;
     
@@ -154,26 +131,17 @@ export default function ShopPage() {
           </p>
         </motion.div>
 
-        {/* 검색 바 */}
-        <form onSubmit={handleSearch} className="card mb-8">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="상품명으로 검색... (예: 신라면, 설화수, 갤럭시)"
-              className="w-full pl-14 pr-32 py-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
-            >
-              {loading ? '검색중...' : '검색'}
-            </button>
-          </div>
-        </form>
+        {/* 검색 바 - 자동완성 적용 */}
+        <div className="card mb-8">
+          <SearchAutocomplete 
+            onSearch={(query) => {
+              setSearchTerm(query);
+              setSelectedPriceRange('all');
+              loadProducts(query);
+            }}
+            placeholder="상품명으로 검색... (예: 신라면, 설화수, 갤럭시)"
+          />
+        </div>
 
         {/* 카테고리 */}
         <div className="mb-6 overflow-x-auto pb-2">
@@ -198,7 +166,6 @@ export default function ShopPage() {
 
         {/* 필터 & 정렬 */}
         <div className="flex flex-wrap gap-4 mb-8">
-          {/* 가격 필터 */}
           <div className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-gray-600" />
             <select
@@ -212,7 +179,6 @@ export default function ShopPage() {
             </select>
           </div>
 
-          {/* 정렬 */}
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
@@ -224,7 +190,6 @@ export default function ShopPage() {
             <option value="discount">🔥 할인율순</option>
           </select>
 
-          {/* 상품 개수 */}
           <div className="flex items-center px-4 py-3 bg-blue-50 rounded-lg text-blue-700 font-medium">
             <Filter className="w-5 h-5 mr-2" />
             {loading ? '검색중...' : `${filteredAndSortedProducts.length}개 상품`}
@@ -264,7 +229,6 @@ export default function ShopPage() {
               </AnimatePresence>
             </div>
 
-            {/* 더보기 표시 */}
             {displayCount < filteredAndSortedProducts.length && (
               <div className="text-center mt-12">
                 <div className="inline-flex items-center gap-2 text-gray-600 bg-white px-6 py-3 rounded-lg shadow-md">

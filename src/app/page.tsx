@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, TrendingUp, Package, Users, Gift, ChevronRight, Star, Zap, ShoppingCart } from 'lucide-react';
 import { UnifiedProduct } from '@/utils/shopApi';
 import ProductCard from '@/components/features/ProductCard';
+import SearchAutocomplete from '@/components/features/SearchAutocomplete';
 import { motion } from 'framer-motion';
 
 interface Mall {
@@ -15,7 +17,6 @@ interface Mall {
   commission: number;
 }
 
-// 실제 쇼핑몰 로고 URL 사용
 const malls: Mall[] = [
   { 
     id: '1', 
@@ -61,7 +62,6 @@ const malls: Mall[] = [
   },
 ];
 
-// UnifiedProduct 타입으로 변경
 const popularProducts: UnifiedProduct[] = [
   {
     id: '1',
@@ -124,7 +124,7 @@ const popularProducts: UnifiedProduct[] = [
 ];
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
 
   const features = [
     {
@@ -155,9 +155,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section - 텍스트 가독성 개선 */}
+      {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white py-24 overflow-hidden">
-        {/* 배경 패턴 */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
             backgroundImage: 'radial-gradient(circle at 25px 25px, white 2%, transparent 0%), radial-gradient(circle at 75px 75px, white 2%, transparent 0%)',
@@ -172,7 +171,6 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            {/* 강조된 텍스트 with 그림자 */}
             <h1 className="text-5xl md:text-7xl font-bold mb-6 font-display text-white drop-shadow-2xl" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
               한국 쇼핑, 세계 어디서나
             </h1>
@@ -180,29 +178,24 @@ export default function HomePage() {
               구매대행부터 커뮤니티까지, 한 곳에서 해결하세요
             </p>
             
-            {/* 검색 바 - 더 눈에 띄게 */}
+            {/* 검색 바 - 자동완성 적용 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="max-w-3xl mx-auto mb-12"
             >
-              <div className="relative shadow-2xl">
-                <input
-                  type="text"
+              <div className="shadow-2xl rounded-2xl overflow-hidden bg-white">
+                <SearchAutocomplete 
+                  onSearch={(query) => {
+                    router.push(`/shop?q=${encodeURIComponent(query)}`);
+                  }}
                   placeholder="찾고 싶은 상품을 검색하세요..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-8 py-5 rounded-2xl text-gray-900 text-lg focus:outline-none focus:ring-4 focus:ring-white/50 shadow-2xl"
-                  style={{ fontSize: '18px' }}
                 />
-                <button className="absolute right-2 top-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
-                  <Search className="w-6 h-6" />
-                </button>
               </div>
             </motion.div>
 
-            {/* Stats - 더 강조된 디자인 */}
+            {/* Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -270,7 +263,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Popular Malls - 실제 로고 사용 */}
+      {/* Popular Malls */}
       <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -301,7 +294,6 @@ export default function HomePage() {
                     alt={mall.name}
                     className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
-                      // 이미지 로드 실패 시 텍스트로 대체
                       e.currentTarget.style.display = 'none';
                       e.currentTarget.parentElement!.innerHTML = `<div class="text-4xl font-bold text-primary-600">${mall.name}</div>`;
                     }}
