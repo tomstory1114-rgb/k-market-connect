@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import FavoriteButton from './FavoriteButton';
 import Link from 'next/link';
+import { useRecentProducts } from '@/hooks/useRecentProducts';
 
 interface ProductCardProps {
   product: UnifiedProduct;
@@ -14,12 +15,19 @@ interface ProductCardProps {
 
 function ProductCard({ product }: ProductCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { addRecentProduct } = useRecentProducts();
+  
   const discountedPrice = product.discount
     ? product.price * (1 - product.discount / 100)
     : product.price;
 
+  const handleProductClick = () => {
+    // 상품을 최근 본 상품에 추가
+    addRecentProduct(product);
+  };
+
   return (
-    <Link href={`/product/${product.id}`}>
+    <Link href={`/product/${product.id}`} onClick={handleProductClick}>
       <motion.div
         whileHover={{ y: -12, scale: 1.02 }}
         transition={{ duration: 0.3 }}
