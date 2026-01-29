@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Filter, Star, TrendingUp, Zap, DollarSign } from 'lucide-react';
+import { Search, Filter, Star, TrendingUp, Zap, DollarSign, ShoppingBag } from 'lucide-react';
 import ProductCard from '@/components/features/ProductCard';
 import SkeletonCard from '@/components/ui/SkeletonCard';
 import SearchAutocomplete from '@/components/features/SearchAutocomplete';
@@ -11,12 +11,12 @@ import toast from 'react-hot-toast';
 
 const categories = [
   { id: 'all', name: '전체', icon: '🛍️', query: '인기상품' },
-  { id: 'food', name: '식품', icon: '🍜', query: '한국 식품' },
-  { id: 'beauty', name: '뷰티', icon: '💄', query: '한국 화장품' },
-  { id: 'fashion', name: '패션', icon: '👕', query: '한국 패션' },
-  { id: 'electronics', name: '전자제품', icon: '📱', query: '전자제품' },
-  { id: 'living', name: '리빙', icon: '🏠', query: '생활용품' },
-  { id: 'baby', name: '유아동', icon: '👶', query: '유아용품' },
+  { id: 'food', name: '식품', icon: '🍜', query: '한국 식품 인기' },
+  { id: 'beauty', name: '뷰티', icon: '💄', query: '한국 화장품 인기' },
+  { id: 'fashion', name: '패션', icon: '👕', query: '한국 패션 인기' },
+  { id: 'electronics', name: '전자제품', icon: '📱', query: '전자제품 인기' },
+  { id: 'living', name: '리빙', icon: '🏠', query: '생활용품 인기' },
+  { id: 'baby', name: '유아동', icon: '👶', query: '유아용품 인기' },
 ];
 
 const priceRanges = [
@@ -28,8 +28,16 @@ const priceRanges = [
   { id: 'over100', label: '10만원 이상', min: 100000, max: Infinity },
 ];
 
+// 쇼핑몰 소스 탭
+const sourceTabs = [
+  { id: 'all', name: '전체', icon: '🛍️' },
+  { id: 'naver', name: '네이버쇼핑', icon: '🟢' },
+  { id: 'coupang', name: '쿠팡', icon: '🔵' },
+];
+
 export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSource, setSelectedSource] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [products, setProducts] = useState<UnifiedProduct[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<UnifiedProduct[]>([]);
@@ -37,6 +45,7 @@ export default function ShopPage() {
   const [sortBy, setSortBy] = useState<'popular' | 'price-low' | 'price-high' | 'discount'>('popular');
   const [selectedPriceRange, setSelectedPriceRange] = useState('all');
   const [displayCount, setDisplayCount] = useState(20);
+  const [initialLoaded, setInitialLoaded] = useState(false);
 
   const loadProducts = async (query: string) => {
     setLoading(true);
@@ -47,21 +56,69 @@ export default function ShopPage() {
       if (data.items && data.items.length > 0) {
         const unified = unifyNaverProducts(data.items);
         setProducts(unified);
+        setInitialLoaded(true);
       } else {
         setProducts([]);
-        toast.error('검색 결과가 없습니다');
+        if (initialLoaded) {
+          toast.error('검색 결과가 없습니다');
+        }
       }
     } catch (error) {
       console.error('상품 로드 실패:', error);
-      toast.error('상품을 불러오는데 실패했습니다');
+      if (initialLoaded) {
+        toast.error('상품을 불러오는데 실패했습니다');
+      }
       setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // 초기 로드 - 여러 인기 키워드로 상품 가져오기
   useEffect(() => {
-    loadProducts('인기상품');
+    const loadInitialProducts = async () => {
+      setLoading(true);
+      try {
+        // 인기 키워드로 검색 (더 많은 결과를 위해)
+        const keywords = ['신라면', '설화수', '에어팟', '다이슨', '정관장'];
+        const allProducts: UnifiedProduct[] = [];
+
+        for (const keyword of keywords) {
+          try {
+            const data = await searchNaverShopping(keyword, 20);
+            if (data.items && data.items.length > 0) {
+              const unified = unifyNaverProducts(data.items);
+              allProducts.push(...unified);
+            }
+          } catch (err) {
+            console.error(`${keyword} 검색 실패:`, err);
+          }
+        }
+
+        if (allProducts.length > 0) {
+          // 중복 제거 (id 기준)
+          const uniqueProducts = Array.from(
+            new Map(allProducts.map(p => [p.id, p])).values()
+          );
+          setProducts(uniqueProducts);
+          setInitialLoaded(true);
+        } else {
+          // 실패 시 기본 검색
+          const data = await searchNaverShopping('인기상품', 100);
+          if (data.items && data.items.length > 0) {
+            const unified = unifyNaverProducts(data.items);
+            setProducts(unified);
+            setInitialLoaded(true);
+          }
+        }
+      } catch (error) {
+        console.error('초기 상품 로드 실패:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInitialProducts();
   }, []);
 
   const handleCategoryChange = (categoryId: string) => {
@@ -76,11 +133,27 @@ export default function ShopPage() {
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...products];
     
+    // 소스 필터 (네이버/쿠팡)
+    if (selectedSource !== 'all') {
+      filtered = filtered.filter(p => {
+        if (selectedSource === 'naver') {
+          return p.source === 'naver' || !p.source;
+        } else if (selectedSource === 'coupang') {
+          // 쿠팡 상품 필터 (현재는 네이버만 있지만 향후 대비)
+          return p.mall?.toLowerCase().includes('쿠팡') || 
+                 p.mall?.toLowerCase().includes('coupang');
+        }
+        return true;
+      });
+    }
+
+    // 가격 필터
     const priceRange = priceRanges.find(r => r.id === selectedPriceRange);
     if (priceRange && priceRange.id !== 'all') {
       filtered = filtered.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
     }
     
+    // 정렬
     if (sortBy === 'price-low') {
       filtered.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
@@ -90,7 +163,7 @@ export default function ShopPage() {
     }
     
     return filtered;
-  }, [products, sortBy, selectedPriceRange]);
+  }, [products, sortBy, selectedPriceRange, selectedSource]);
 
   useEffect(() => {
     setDisplayedProducts(filteredAndSortedProducts.slice(0, displayCount));
@@ -131,7 +204,7 @@ export default function ShopPage() {
           </p>
         </motion.div>
 
-        {/* 검색 바 - 자동완성 적용 */}
+        {/* 검색 바 */}
         <div className="card mb-8">
           <SearchAutocomplete 
             onSearch={(query) => {
@@ -141,6 +214,27 @@ export default function ShopPage() {
             }}
             placeholder="상품명으로 검색... (예: 신라면, 설화수, 갤럭시)"
           />
+        </div>
+
+        {/* 소스 탭 (네이버/쿠팡) */}
+        <div className="mb-6 overflow-x-auto pb-2">
+          <div className="flex gap-3 min-w-max">
+            {sourceTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedSource(tab.id)}
+                disabled={loading}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 whitespace-nowrap disabled:opacity-50 ${
+                  selectedSource === tab.id
+                    ? 'bg-blue-600 text-white shadow-lg scale-105'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
+                }`}
+              >
+                <span className="mr-2">{tab.icon}</span>
+                {tab.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* 카테고리 */}
@@ -209,7 +303,18 @@ export default function ShopPage() {
             <h3 className="text-2xl font-bold text-gray-900 mb-2">
               검색 결과가 없습니다
             </h3>
-            <p className="text-gray-600">다른 검색어나 가격대를 시도해보세요</p>
+            <p className="text-gray-600 mb-6">다른 검색어나 가격대를 시도해보세요</p>
+            <button
+              onClick={() => {
+                setSelectedCategory('all');
+                setSelectedPriceRange('all');
+                setSelectedSource('all');
+                loadProducts('인기상품');
+              }}
+              className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all"
+            >
+              전체 상품 보기
+            </button>
           </div>
         ) : (
           <>
